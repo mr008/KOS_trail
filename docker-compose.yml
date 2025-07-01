@@ -1,0 +1,194 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: kos_postgres
+    environment:
+      POSTGRES_DB: glucose_db
+      POSTGRES_USER: glucose_user
+      POSTGRES_PASSWORD: glucose_pass
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend_work_trial_data/database_schema.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./backend_work_trial_data/init-data.sql:/docker-entrypoint-initdb.d/02-data.sql:ro
+    networks:
+      - kos_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glucose_user -d glucose_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: kos_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - kos_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    command: redis-server --appendonly yes --requirepass redis_pass
+    restart: unless-stopped
+
+  # KOS FastAPI Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kos_app
+    ports:
+      - "8000:8000"
+    environment:
+      # Database configuration
+      - DATABASE_URL=postgresql://glucose_user:glucose_pass@postgres:5432/glucose_db
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=glucose_db
+      - DB_USER=glucose_user
+      - DB_PASSWORD=glucose_pass
+      
+      # Redis configuration
+      - REDIS_URL=redis://:redis_pass@redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis_pass
+      
+      # Application configuration
+      - PORT=8000
+      - HOST=0.0.0.0
+      - DEBUG=true
+      
+      # Security configuration
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+      - API_KEY_SECRET=dev-api-key-12345
+      
+      # Medical device configuration
+      - MAX_GLUCOSE_READING_RATE=30
+      - GLUCOSE_MIN_VALUE=40
+      - GLUCOSE_MAX_VALUE=400
+      
+    volumes:
+      - ./tests:/app/tests:ro  # Mount test files for development
+    networks:
+      - kos_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # pgAdmin for database management (optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: kos_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@kos-glucose.com
+      PGADMIN_DEFAULT_PASSWORD: admin_pass
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "8081:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - kos_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - tools
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  kos_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+# =================
+# USAGE INSTRUCTIONS
+# =================
+
+# Basic setup (all core services):
+# docker-compose up
+
+# Run in background:
+# docker-compose up -d
+
+# With database management tools:
+# docker-compose --profile tools up
+
+# Build and run (after code changes):
+# docker-compose up --build
+
+# Stop services:
+# docker-compose down
+
+# Remove volumes (WARNING: deletes all data):
+# docker-compose down -v
+
+# View logs:
+# docker-compose logs -f app
+# docker-compose logs -f postgres
+# docker-compose logs -f redis
+
+# Scale application (multiple instances):
+# docker-compose up --scale app=3
+
+# Access services:
+# API: http://localhost:8000
+# API Docs: http://localhost:8000/docs
+# pgAdmin: http://localhost:8081 (with --profile tools)
+
+# Database direct access:
+# docker-compose exec postgres psql -U glucose_user -d glucose_db
+
+# Redis CLI access:
+# docker-compose exec redis redis-cli -a redis_pass
+
+# Application shell access:
+# docker-compose exec app bash
+
+# =================
+# TESTING COMMANDS
+# =================
+
+# Health check:
+# curl http://localhost:8000/health
+
+# Test API with authentication:
+# curl -H "X-API-Key: dev-api-key-12345" -H "Content-Type: application/json" \
+#   -d @tests/valid_reading.json \
+#   http://localhost:8000/api/v1/devices/ARGUS_001234/readings
+
+# Test user authentication:
+# curl -H "Authorization: Bearer test-token-123456789" \
+#   http://localhost:8000/api/v1/users/user_5678/glucose/current 

@@ -1,0 +1,16 @@
+{
+  "deviceId": "ARGUS_001234",
+  "userId": "user_5678",
+  "timestamp": "2025-01-01T22:40:00",
+  "glucoseValue": 500,
+  "confidence": 0.95,
+  "sensorData": {
+    "red": 1250.5,
+    "infrared": 980.2,
+    "green": 1100.8,
+    "temperature": 36.5,
+    "motionArtifact": false
+  },
+  "batteryLevel": 85,
+  "signalQuality": "excellent"
+} 
