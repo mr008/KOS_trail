@@ -1,0 +1,552 @@
+{
+  "info": {
+    "name": "KOS Glucose API - Backend Work Trial",
+    "description": "API testing collection for the KOS Backend Engineer Work Trial. This collection includes tests for all required endpoints and sample requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "description": "Base URL for the glucose API"
+    },
+    {
+      "key": "apiKey",
+      "value": "dev-api-key-12345",
+      "description": "API key for device authentication"
+    },
+    {
+      "key": "jwtToken",
+      "value": "",
+      "description": "JWT token for user authentication (set after login)"
+    },
+    {
+      "key": "deviceId",
+      "value": "ARGUS_001234",
+      "description": "Sample device ID for testing"
+    },
+    {
+      "key": "userId",
+      "value": "user_5678",
+      "description": "Sample user ID for testing"
+    }
+  ],
+  "auth": {
+    "type": "noauth"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set timestamp for requests that need it",
+          "pm.globals.set('timestamp', new Date().toISOString());"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Basic health check endpoint to verify API is running"
+      },
+      "response": [
+        {
+          "name": "Healthy Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"status\": \"healthy\",\n  \"timestamp\": \"2025-01-07T17:46:00Z\",\n  \"version\": \"1.0.0\",\n  \"database\": \"connected\",\n  \"redis\": \"connected\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Submit Glucose Reading",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}",
+            "description": "Device API key for authentication"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"deviceId\": \"{{deviceId}}\",\n  \"userId\": \"{{userId}}\",\n  \"timestamp\": \"{{timestamp}}\",\n  \"glucoseValue\": 120,\n  \"confidence\": 0.94,\n  \"sensorData\": {\n    \"red\": 2.45,\n    \"infrared\": 1.89,\n    \"green\": 3.12,\n    \"temperature\": 36.2,\n    \"motionArtifact\": false\n  },\n  \"batteryLevel\": 78,\n  \"signalQuality\": \"good\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/devices/{{deviceId}}/readings",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "devices", "{{deviceId}}", "readings"]
+        },
+        "description": "Submit a new glucose reading from an ARGUS device"
+      },
+      "response": [
+        {
+          "name": "Successful Submission",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "dev-api-key-12345"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceId\": \"ARGUS_001234\",\n  \"userId\": \"user_5678\",\n  \"timestamp\": \"2025-01-07T17:46:00Z\",\n  \"glucoseValue\": 120,\n  \"confidence\": 0.94,\n  \"sensorData\": {\n    \"red\": 2.45,\n    \"infrared\": 1.89,\n    \"green\": 3.12,\n    \"temperature\": 36.2,\n    \"motionArtifact\": false\n  },\n  \"batteryLevel\": 78,\n  \"signalQuality\": \"good\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/devices/ARGUS_001234/readings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "devices", "ARGUS_001234", "readings"]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"status\": \"processed\",\n  \"alerts\": [],\n  \"trend\": \"stable\",\n  \"message\": \"Glucose reading processed successfully\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Device Readings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/devices/{{deviceId}}/readings?limit=20&since=2025-01-07T00:00:00Z",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "devices", "{{deviceId}}", "readings"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "20",
+              "description": "Maximum number of readings to return"
+            },
+            {
+              "key": "since",
+              "value": "2025-01-07T00:00:00Z",
+              "description": "Return readings since this timestamp"
+            }
+          ]
+        },
+        "description": "Get recent glucose readings from a specific device"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Current Glucose",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwtToken}}",
+            "description": "User JWT token"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{userId}}/glucose/current",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "users", "{{userId}}", "glucose", "current"]
+        },
+        "description": "Get the most recent glucose reading for a user"
+      },
+      "response": [
+        {
+          "name": "Current Glucose",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/user_5678/glucose/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "user_5678", "glucose", "current"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"userId\": \"user_5678\",\n  \"deviceId\": \"ARGUS_001234\",\n  \"currentGlucose\": {\n    \"value\": 120,\n    \"timestamp\": \"2025-01-07T17:46:00Z\",\n    \"confidence\": 0.94,\n    \"trend\": \"stable\",\n    \"signalQuality\": \"good\"\n  },\n  \"status\": \"normal\",\n  \"timeInRange\": {\n    \"today\": 87.5,\n    \"last7Days\": 82.3\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Glucose History",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwtToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{userId}}/glucose/history?period=24h&resolution=1h",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "users", "{{userId}}", "glucose", "history"],
+          "query": [
+            {
+              "key": "period",
+              "value": "24h",
+              "description": "Time period: 6h, 24h, 7d, 30d"
+            },
+            {
+              "key": "resolution",
+              "value": "1h",
+              "description": "Data resolution: 1m, 5m, 15m, 1h"
+            }
+          ]
+        },
+        "description": "Get glucose history for a user with specified time period and resolution"
+      },
+      "response": []
+    },
+    {
+      "name": "Configure Alerts",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwtToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"lowGlucose\": 70,\n  \"highGlucose\": 180,\n  \"rapidChange\": 4.0,\n  \"enableNotifications\": true,\n  \"quietHours\": {\n    \"enabled\": true,\n    \"start\": \"22:00\",\n    \"end\": \"07:00\",\n    \"allowCritical\": true\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{userId}}/alerts/configure",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "users", "{{userId}}", "alerts", "configure"]
+        },
+        "description": "Configure alert thresholds and notification settings for a user"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Analytics Summary",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwtToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{userId}}/analytics/summary?period=7d",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "users", "{{userId}}", "analytics", "summary"],
+          "query": [
+            {
+              "key": "period",
+              "value": "7d",
+              "description": "Analysis period: 1d, 7d, 30d, 90d"
+            }
+          ]
+        },
+        "description": "Get analytics summary including time-in-range, average glucose, variability, etc."
+      },
+      "response": [
+        {
+          "name": "Analytics Summary",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/user_5678/analytics/summary?period=7d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "user_5678", "analytics", "summary"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "7d"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"userId\": \"user_5678\",\n  \"period\": \"7d\",\n  \"summary\": {\n    \"averageGlucose\": 142.5,\n    \"estimatedA1C\": 6.8,\n    \"timeInRange\": {\n      \"target\": 78.5,\n      \"below\": 12.3,\n      \"above\": 9.2\n    },\n    \"glucoseVariability\": {\n      \"standardDeviation\": 28.4,\n      \"coefficientOfVariation\": 19.9\n    },\n    \"readingsCount\": 2016,\n    \"dataCompleteness\": 94.3\n  },\n  \"trends\": {\n    \"averageChange\": \"+2.1 mg/dL vs previous period\",\n    \"timeInRangeChange\": \"+3.2% vs previous period\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Validation Tests",
+      "item": [
+        {
+          "name": "Invalid Glucose Value (Too High)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceId\": \"{{deviceId}}\",\n  \"userId\": \"{{userId}}\",\n  \"timestamp\": \"{{timestamp}}\",\n  \"glucoseValue\": 450,\n  \"confidence\": 0.94,\n  \"sensorData\": {\n    \"red\": 2.45,\n    \"infrared\": 1.89,\n    \"green\": 3.12,\n    \"temperature\": 36.2,\n    \"motionArtifact\": false\n  },\n  \"batteryLevel\": 78,\n  \"signalQuality\": \"good\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/devices/{{deviceId}}/readings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "devices", "{{deviceId}}", "readings"]
+            },
+            "description": "Test validation - glucose value above maximum (400 mg/dL)"
+          },
+          "response": [
+            {
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-API-Key",
+                    "value": "dev-api-key-12345"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"deviceId\": \"ARGUS_001234\",\n  \"userId\": \"user_5678\",\n  \"timestamp\": \"2025-01-07T17:46:00Z\",\n  \"glucoseValue\": 450,\n  \"confidence\": 0.94,\n  \"sensorData\": {\n    \"red\": 2.45,\n    \"infrared\": 1.89,\n    \"green\": 3.12,\n    \"temperature\": 36.2,\n    \"motionArtifact\": false\n  },\n  \"batteryLevel\": 78,\n  \"signalQuality\": \"good\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/devices/ARGUS_001234/readings",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "devices", "ARGUS_001234", "readings"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": \"Validation Error\",\n  \"message\": \"Glucose value must be between 40 and 400 mg/dL\",\n  \"field\": \"glucoseValue\",\n  \"value\": 450,\n  \"timestamp\": \"2025-01-07T17:46:00Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Missing Required Fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceId\": \"{{deviceId}}\",\n  \"timestamp\": \"{{timestamp}}\",\n  \"confidence\": 0.94\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/devices/{{deviceId}}/readings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "devices", "{{deviceId}}", "readings"]
+            },
+            "description": "Test validation - missing required fields (userId, glucoseValue)"
+          },
+          "response": []
+        },
+        {
+          "name": "Rate Limiting Test",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceId\": \"{{deviceId}}\",\n  \"userId\": \"{{userId}}\",\n  \"timestamp\": \"{{timestamp}}\",\n  \"glucoseValue\": 120,\n  \"confidence\": 0.94,\n  \"sensorData\": {\n    \"red\": 2.45,\n    \"infrared\": 1.89,\n    \"green\": 3.12,\n    \"temperature\": 36.2,\n    \"motionArtifact\": false\n  },\n  \"batteryLevel\": 78,\n  \"signalQuality\": \"good\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/devices/{{deviceId}}/readings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "devices", "{{deviceId}}", "readings"]
+            },
+            "description": "Send rapid requests to test rate limiting (max 1 per 30 seconds per device)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Tests for validation and error handling"
+    },
+    {
+      "name": "Authentication Tests",
+      "item": [
+        {
+          "name": "Missing API Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceId\": \"{{deviceId}}\",\n  \"userId\": \"{{userId}}\",\n  \"timestamp\": \"{{timestamp}}\",\n  \"glucoseValue\": 120,\n  \"confidence\": 0.94,\n  \"sensorData\": {\n    \"red\": 2.45,\n    \"infrared\": 1.89,\n    \"green\": 3.12,\n    \"temperature\": 36.2,\n    \"motionArtifact\": false\n  },\n  \"batteryLevel\": 78,\n  \"signalQuality\": \"good\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/devices/{{deviceId}}/readings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "devices", "{{deviceId}}", "readings"]
+            },
+            "description": "Test authentication - missing API key should return 401"
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid API Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "invalid-api-key"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceId\": \"{{deviceId}}\",\n  \"userId\": \"{{userId}}\",\n  \"timestamp\": \"{{timestamp}}\",\n  \"glucoseValue\": 120,\n  \"confidence\": 0.94,\n  \"sensorData\": {\n    \"red\": 2.45,\n    \"infrared\": 1.89,\n    \"green\": 3.12,\n    \"temperature\": 36.2,\n    \"motionArtifact\": false\n  },\n  \"batteryLevel\": 78,\n  \"signalQuality\": \"good\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/devices/{{deviceId}}/readings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "devices", "{{deviceId}}", "readings"]
+            },
+            "description": "Test authentication - invalid API key should return 401"
+          },
+          "response": []
+        }
+      ],
+      "description": "Tests for authentication and authorization"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script",
+          "console.log('Making request to:', pm.request.url.toString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script",
+          "pm.test('Response time is less than 1000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+          "});",
+          "",
+          "pm.test('Response has Content-Type header', function () {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "});"
+        ]
+      }
+    }
+  ]
+}

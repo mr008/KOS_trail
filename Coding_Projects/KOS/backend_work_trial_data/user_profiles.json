@@ -1,0 +1,82 @@
+[
+  {
+    "userId": "user_5678",
+    "demographics": {
+      "age": 45,
+      "gender": "F",
+      "bmi": 24.5,
+      "skinTone": "medium",
+      "hba1c": 7.2
+    },
+    "alertThresholds": {
+      "lowGlucose": 70,
+      "highGlucose": 180,
+      "rapidChange": 4.0
+    },
+    "createdAt": "2025-01-01T00:00:00Z"
+  },
+  {
+    "userId": "user_9012",
+    "demographics": {
+      "age": 67,
+      "gender": "M",
+      "bmi": 28.3,
+      "skinTone": "light",
+      "hba1c": 8.1
+    },
+    "alertThresholds": {
+      "lowGlucose": 65,
+      "highGlucose": 200,
+      "rapidChange": 5.0
+    },
+    "createdAt": "2024-12-15T00:00:00Z"
+  },
+  {
+    "userId": "user_3456",
+    "demographics": {
+      "age": 29,
+      "gender": "F",
+      "bmi": 22.1,
+      "skinTone": "dark",
+      "hba1c": 9.5
+    },
+    "alertThresholds": {
+      "lowGlucose": 75,
+      "highGlucose": 250,
+      "rapidChange": 6.0
+    },
+    "createdAt": "2024-11-20T00:00:00Z"
+  },
+  {
+    "userId": "user_7890",
+    "demographics": {
+      "age": 38,
+      "gender": "M",
+      "bmi": 26.7,
+      "skinTone": "medium",
+      "hba1c": 6.8
+    },
+    "alertThresholds": {
+      "lowGlucose": 70,
+      "highGlucose": 160,
+      "rapidChange": 3.5
+    },
+    "createdAt": "2024-12-30T00:00:00Z"
+  },
+  {
+    "userId": "user_1357",
+    "demographics": {
+      "age": 52,
+      "gender": "F",
+      "bmi": 31.2,
+      "skinTone": "light",
+      "hba1c": 10.1
+    },
+    "alertThresholds": {
+      "lowGlucose": 80,
+      "highGlucose": 300,
+      "rapidChange": 8.0
+    },
+    "createdAt": "2024-10-05T00:00:00Z"
+  }
+]

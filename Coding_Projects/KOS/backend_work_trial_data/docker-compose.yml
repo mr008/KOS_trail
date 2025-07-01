@@ -1,0 +1,228 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: glucose_db
+      POSTGRES_USER: glucose_user
+      POSTGRES_PASSWORD: glucose_pass
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database_schema.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./init-data.sql:/docker-entrypoint-initdb.d/02-data.sql:ro
+    networks:
+      - glucose_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glucose_user -d glucose_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - glucose_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    command: redis-server --appendonly yes --requirepass redis_pass
+
+  # pgAdmin for database management (optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@kos-ai.com
+      PGADMIN_DEFAULT_PASSWORD: admin_pass
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "8081:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - glucose_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - tools
+
+  # Application service (template - candidate will build this)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      # Database configuration
+      - DATABASE_URL=postgresql://glucose_user:glucose_pass@postgres:5432/glucose_db
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=glucose_db
+      - DB_USER=glucose_user
+      - DB_PASSWORD=glucose_pass
+      
+      # Redis configuration
+      - REDIS_URL=redis://:redis_pass@redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redis_pass
+      
+      # Application configuration
+      - PORT=8080
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+      
+      # Security configuration
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+      - API_KEY_SECRET=your-api-key-secret-change-this
+      
+      # Rate limiting
+      - RATE_LIMIT_WINDOW_MS=900000  # 15 minutes
+      - RATE_LIMIT_MAX_REQUESTS=100
+      
+      # Medical device specific
+      - MAX_GLUCOSE_READING_RATE=30  # seconds between readings
+      - GLUCOSE_MIN_VALUE=40
+      - GLUCOSE_MAX_VALUE=400
+      
+      # Alert configuration
+      - ENABLE_ALERTS=true
+      - ALERT_BUFFER_SIZE=1000
+      
+    volumes:
+      - .:/app
+      - /app/node_modules  # Prevent node_modules from being overridden
+    working_dir: /app
+    networks:
+      - glucose_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - app
+    # Uncomment the command below for development mode
+    # command: npm run dev
+
+  # Nginx reverse proxy (optional for production-like setup)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - glucose_network
+    depends_on:
+      - app
+    profiles:
+      - production
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  glucose_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# =================
+# USAGE INSTRUCTIONS
+# =================
+
+# Basic setup (database + cache only):
+# docker-compose up postgres redis
+
+# With database management tools:
+# docker-compose --profile tools up postgres redis pgadmin
+
+# Full development environment (when you have your app ready):
+# docker-compose --profile app up
+
+# Production-like setup with nginx:
+# docker-compose --profile production up
+
+# To run in background:
+# docker-compose up -d postgres redis
+
+# To stop services:
+# docker-compose down
+
+# To remove volumes (WARNING: deletes all data):
+# docker-compose down -v
+
+# To rebuild application after changes:
+# docker-compose build app
+
+# To view logs:
+# docker-compose logs -f postgres
+# docker-compose logs -f redis
+# docker-compose logs -f app
+
+# To access database directly:
+# docker-compose exec postgres psql -U glucose_user -d glucose_db
+
+# To access Redis CLI:
+# docker-compose exec redis redis-cli -a redis_pass
+
+# =================
+# DEVELOPMENT NOTES
+# =================
+
+# 1. The database schema will be automatically loaded on first startup
+# 2. Sample data is inserted via the init-data.sql file
+# 3. pgAdmin is available at http://localhost:8081 with credentials:
+#    Email: admin@kos-ai.com, Password: admin_pass
+# 4. Redis password is set to 'redis_pass' for development
+# 5. All services are connected via the 'glucose_network' bridge network
+# 6. Data persists in Docker volumes between container restarts
+# 7. The app service is configured but requires you to build your application
+# 8. Environment variables are set for common configuration needs
+
+# =================
+# HEALTH CHECKS
+# =================
+
+# All critical services include health checks:
+# - PostgreSQL: Checks if database accepts connections
+# - Redis: Checks if Redis responds to ping
+# - These health checks ensure dependent services wait for dependencies
+
+# =================
+# SECURITY NOTES
+# =================
+
+# WARNING: This configuration is for development only!
+# For production:
+# 1. Change all default passwords
+# 2. Use secrets management instead of environment variables
+# 3. Enable SSL/TLS for all connections
+# 4. Implement proper network segmentation
+# 5. Use read-only database users for application queries
+# 6. Enable database and Redis authentication
+# 7. Configure proper firewall rules

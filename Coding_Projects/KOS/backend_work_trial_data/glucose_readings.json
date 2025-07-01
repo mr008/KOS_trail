@@ -1,0 +1,322 @@
+[
+  {
+    "deviceId": "ARGUS_001234",
+    "userId": "user_5678",
+    "timestamp": "2025-01-07T17:30:00Z",
+    "glucoseValue": 95,
+    "confidence": 0.92,
+    "sensorData": {
+      "red": 2.31,
+      "infrared": 1.76,
+      "green": 2.98,
+      "temperature": 36.1,
+      "motionArtifact": false
+    },
+    "batteryLevel": 82,
+    "signalQuality": "excellent"
+  },
+  {
+    "deviceId": "ARGUS_001234",
+    "userId": "user_5678",
+    "timestamp": "2025-01-07T17:30:30Z",
+    "glucoseValue": 98,
+    "confidence": 0.89,
+    "sensorData": {
+      "red": 2.35,
+      "infrared": 1.81,
+      "green": 3.02,
+      "temperature": 36.2,
+      "motionArtifact": false
+    },
+    "batteryLevel": 82,
+    "signalQuality": "good"
+  },
+  {
+    "deviceId": "ARGUS_001234",
+    "userId": "user_5678",
+    "timestamp": "2025-01-07T17:31:00Z",
+    "glucoseValue": 102,
+    "confidence": 0.94,
+    "sensorData": {
+      "red": 2.42,
+      "infrared": 1.89,
+      "green": 3.12,
+      "temperature": 36.2,
+      "motionArtifact": false
+    },
+    "batteryLevel": 81,
+    "signalQuality": "excellent"
+  },
+  {
+    "deviceId": "ARGUS_001234",
+    "userId": "user_5678",
+    "timestamp": "2025-01-07T17:31:30Z",
+    "glucoseValue": 105,
+    "confidence": 0.91,
+    "sensorData": {
+      "red": 2.48,
+      "infrared": 1.95,
+      "green": 3.18,
+      "temperature": 36.3,
+      "motionArtifact": false
+    },
+    "batteryLevel": 81,
+    "signalQuality": "good"
+  },
+  {
+    "deviceId": "ARGUS_001234",
+    "userId": "user_5678",
+    "timestamp": "2025-01-07T17:32:00Z",
+    "glucoseValue": 145,
+    "confidence": 0.76,
+    "sensorData": {
+      "red": 2.89,
+      "infrared": 2.12,
+      "green": 3.45,
+      "temperature": 36.3,
+      "motionArtifact": true
+    },
+    "batteryLevel": 81,
+    "signalQuality": "fair"
+  },
+  {
+    "deviceId": "ARGUS_001234",
+    "userId": "user_5678",
+    "timestamp": "2025-01-07T17:32:30Z",
+    "glucoseValue": 152,
+    "confidence": 0.73,
+    "sensorData": {
+      "red": 2.95,
+      "infrared": 2.18,
+      "green": 3.52,
+      "temperature": 36.4,
+      "motionArtifact": true
+    },
+    "batteryLevel": 80,
+    "signalQuality": "fair"
+  },
+  {
+    "deviceId": "ARGUS_001234",
+    "userId": "user_5678",
+    "timestamp": "2025-01-07T17:33:00Z",
+    "glucoseValue": 148,
+    "confidence": 0.88,
+    "sensorData": {
+      "red": 2.87,
+      "infrared": 2.09,
+      "green": 3.41,
+      "temperature": 36.3,
+      "motionArtifact": false
+    },
+    "batteryLevel": 80,
+    "signalQuality": "good"
+  },
+  {
+    "deviceId": "ARGUS_002468",
+    "userId": "user_9012",
+    "timestamp": "2025-01-07T17:30:00Z",
+    "glucoseValue": 72,
+    "confidence": 0.85,
+    "sensorData": {
+      "red": 1.89,
+      "infrared": 1.45,
+      "green": 2.12,
+      "temperature": 35.8,
+      "motionArtifact": false
+    },
+    "batteryLevel": 65,
+    "signalQuality": "good"
+  },
+  {
+    "deviceId": "ARGUS_002468",
+    "userId": "user_9012",
+    "timestamp": "2025-01-07T17:30:30Z",
+    "glucoseValue": 69,
+    "confidence": 0.83,
+    "sensorData": {
+      "red": 1.84,
+      "infrared": 1.41,
+      "green": 2.08,
+      "temperature": 35.8,
+      "motionArtifact": false
+    },
+    "batteryLevel": 65,
+    "signalQuality": "good"
+  },
+  {
+    "deviceId": "ARGUS_002468",
+    "userId": "user_9012",
+    "timestamp": "2025-01-07T17:31:00Z",
+    "glucoseValue": 65,
+    "confidence": 0.79,
+    "sensorData": {
+      "red": 1.78,
+      "infrared": 1.36,
+      "green": 2.01,
+      "temperature": 35.7,
+      "motionArtifact": false
+    },
+    "batteryLevel": 64,
+    "signalQuality": "fair"
+  },
+  {
+    "deviceId": "ARGUS_003691",
+    "userId": "user_3456",
+    "timestamp": "2025-01-07T17:30:00Z",
+    "glucoseValue": 195,
+    "confidence": 0.91,
+    "sensorData": {
+      "red": 3.45,
+      "infrared": 2.78,
+      "green": 4.12,
+      "temperature": 36.6,
+      "motionArtifact": false
+    },
+    "batteryLevel": 78,
+    "signalQuality": "excellent"
+  },
+  {
+    "deviceId": "ARGUS_003691",
+    "userId": "user_3456",
+    "timestamp": "2025-01-07T17:30:30Z",
+    "glucoseValue": 198,
+    "confidence": 0.93,
+    "sensorData": {
+      "red": 3.52,
+      "infrared": 2.84,
+      "green": 4.18,
+      "temperature": 36.6,
+      "motionArtifact": false
+    },
+    "batteryLevel": 78,
+    "signalQuality": "excellent"
+  },
+  {
+    "deviceId": "ARGUS_003691",
+    "userId": "user_3456",
+    "timestamp": "2025-01-07T17:31:00Z",
+    "glucoseValue": 201,
+    "confidence": 0.89,
+    "sensorData": {
+      "red": 3.58,
+      "infrared": 2.89,
+      "green": 4.25,
+      "temperature": 36.7,
+      "motionArtifact": false
+    },
+    "batteryLevel": 77,
+    "signalQuality": "good"
+  },
+  {
+    "deviceId": "ARGUS_004815",
+    "userId": "user_7890",
+    "timestamp": "2025-01-07T17:30:00Z",
+    "glucoseValue": 125,
+    "confidence": 0.96,
+    "sensorData": {
+      "red": 2.67,
+      "infrared": 2.01,
+      "green": 3.34,
+      "temperature": 36.4,
+      "motionArtifact": false
+    },
+    "batteryLevel": 91,
+    "signalQuality": "excellent"
+  },
+  {
+    "deviceId": "ARGUS_004815",
+    "userId": "user_7890",
+    "timestamp": "2025-01-07T17:30:30Z",
+    "glucoseValue": 123,
+    "confidence": 0.94,
+    "sensorData": {
+      "red": 2.64,
+      "infrared": 1.98,
+      "green": 3.31,
+      "temperature": 36.4,
+      "motionArtifact": false
+    },
+    "batteryLevel": 91,
+    "signalQuality": "excellent"
+  },
+  {
+    "deviceId": "ARGUS_001234",
+    "userId": "user_5678",
+    "timestamp": "2025-01-07T15:45:00Z",
+    "glucoseValue": 89,
+    "confidence": 0.87,
+    "sensorData": {
+      "red": 2.15,
+      "infrared": 1.62,
+      "green": 2.78,
+      "temperature": 35.9,
+      "motionArtifact": false
+    },
+    "batteryLevel": 89,
+    "signalQuality": "good"
+  },
+  {
+    "deviceId": "ARGUS_001234",
+    "userId": "user_5678",
+    "timestamp": "2025-01-07T16:15:00Z",
+    "glucoseValue": 92,
+    "confidence": 0.91,
+    "sensorData": {
+      "red": 2.23,
+      "infrared": 1.68,
+      "green": 2.85,
+      "temperature": 36.0,
+      "motionArtifact": false
+    },
+    "batteryLevel": 87,
+    "signalQuality": "excellent"
+  },
+  {
+    "deviceId": "ARGUS_001234",
+    "userId": "user_5678",
+    "timestamp": "2025-01-07T16:45:00Z",
+    "glucoseValue": 87,
+    "confidence": 0.88,
+    "sensorData": {
+      "red": 2.11,
+      "infrared": 1.59,
+      "green": 2.74,
+      "temperature": 36.0,
+      "motionArtifact": false
+    },
+    "batteryLevel": 85,
+    "signalQuality": "good"
+  },
+  {
+    "deviceId": "ARGUS_005927",
+    "userId": "user_1357",
+    "timestamp": "2025-01-07T17:30:00Z",
+    "glucoseValue": 310,
+    "confidence": 0.45,
+    "sensorData": {
+      "red": 4.89,
+      "infrared": 3.67,
+      "green": 5.12,
+      "temperature": 37.2,
+      "motionArtifact": true
+    },
+    "batteryLevel": 23,
+    "signalQuality": "poor"
+  },
+  {
+    "deviceId": "ARGUS_005927",
+    "userId": "user_1357",
+    "timestamp": "2025-01-07T17:30:30Z",
+    "glucoseValue": 275,
+    "confidence": 0.52,
+    "sensorData": {
+      "red": 4.23,
+      "infrared": 3.21,
+      "green": 4.78,
+      "temperature": 37.1,
+      "motionArtifact": true
+    },
+    "batteryLevel": 23,
+    "signalQuality": "poor"
+  }
+]

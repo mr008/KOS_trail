@@ -1,0 +1,162 @@
+[
+  {
+    "deviceId": "ARGUS_001234",
+    "userId": "user_5678",
+    "deviceInfo": {
+      "serialNumber": "ARG2024-001234",
+      "firmwareVersion": "2.1.3",
+      "hardwareRevision": "Rev C",
+      "manufacturingDate": "2024-12-15",
+      "calibrationDate": "2025-01-01"
+    },
+    "status": "active",
+    "lastSeen": "2025-01-07T17:33:00Z",
+    "batteryInfo": {
+      "currentLevel": 80,
+      "estimatedHoursRemaining": 168,
+      "chargeCycles": 45,
+      "batteryHealth": "good"
+    },
+    "sensorCalibration": {
+      "redOffset": 0.12,
+      "infraredOffset": -0.08,
+      "greenOffset": 0.05,
+      "temperatureOffset": -0.3
+    },
+    "userSpecificSettings": {
+      "skinToneCompensation": "medium",
+      "motionSensitivity": "normal",
+      "samplingRate": "standard"
+    },
+    "createdAt": "2025-01-01T00:00:00Z",
+    "updatedAt": "2025-01-07T17:33:00Z"
+  },
+  {
+    "deviceId": "ARGUS_002468",
+    "userId": "user_9012",
+    "deviceInfo": {
+      "serialNumber": "ARG2024-002468",
+      "firmwareVersion": "2.1.1",
+      "hardwareRevision": "Rev B",
+      "manufacturingDate": "2024-11-20",
+      "calibrationDate": "2024-12-15"
+    },
+    "status": "active",
+    "lastSeen": "2025-01-07T17:31:00Z",
+    "batteryInfo": {
+      "currentLevel": 64,
+      "estimatedHoursRemaining": 134,
+      "chargeCycles": 78,
+      "batteryHealth": "fair"
+    },
+    "sensorCalibration": {
+      "redOffset": -0.05,
+      "infraredOffset": 0.15,
+      "greenOffset": -0.02,
+      "temperatureOffset": 0.1
+    },
+    "userSpecificSettings": {
+      "skinToneCompensation": "light",
+      "motionSensitivity": "high",
+      "samplingRate": "standard"
+    },
+    "createdAt": "2024-12-15T00:00:00Z",
+    "updatedAt": "2025-01-07T17:31:00Z"
+  },
+  {
+    "deviceId": "ARGUS_003691",
+    "userId": "user_3456",
+    "deviceInfo": {
+      "serialNumber": "ARG2024-003691",
+      "firmwareVersion": "2.1.3",
+      "hardwareRevision": "Rev C",
+      "manufacturingDate": "2024-10-30",
+      "calibrationDate": "2024-11-20"
+    },
+    "status": "active",
+    "lastSeen": "2025-01-07T17:31:00Z",
+    "batteryInfo": {
+      "currentLevel": 77,
+      "estimatedHoursRemaining": 162,
+      "chargeCycles": 89,
+      "batteryHealth": "good"
+    },
+    "sensorCalibration": {
+      "redOffset": 0.23,
+      "infraredOffset": 0.18,
+      "greenOffset": 0.31,
+      "temperatureOffset": 0.2
+    },
+    "userSpecificSettings": {
+      "skinToneCompensation": "dark",
+      "motionSensitivity": "normal",
+      "samplingRate": "high_frequency"
+    },
+    "createdAt": "2024-11-20T00:00:00Z",
+    "updatedAt": "2025-01-07T17:31:00Z"
+  },
+  {
+    "deviceId": "ARGUS_004815",
+    "userId": "user_7890",
+    "deviceInfo": {
+      "serialNumber": "ARG2024-004815",
+      "firmwareVersion": "2.1.4",
+      "hardwareRevision": "Rev C",
+      "manufacturingDate": "2024-12-28",
+      "calibrationDate": "2024-12-30"
+    },
+    "status": "active",
+    "lastSeen": "2025-01-07T17:30:30Z",
+    "batteryInfo": {
+      "currentLevel": 91,
+      "estimatedHoursRemaining": 195,
+      "chargeCycles": 12,
+      "batteryHealth": "excellent"
+    },
+    "sensorCalibration": {
+      "redOffset": 0.08,
+      "infraredOffset": -0.03,
+      "greenOffset": 0.11,
+      "temperatureOffset": -0.1
+    },
+    "userSpecificSettings": {
+      "skinToneCompensation": "medium",
+      "motionSensitivity": "low",
+      "samplingRate": "standard"
+    },
+    "createdAt": "2024-12-30T00:00:00Z",
+    "updatedAt": "2025-01-07T17:30:30Z"
+  },
+  {
+    "deviceId": "ARGUS_005927",
+    "userId": "user_1357",
+    "deviceInfo": {
+      "serialNumber": "ARG2024-005927",
+      "firmwareVersion": "2.0.8",
+      "hardwareRevision": "Rev A",
+      "manufacturingDate": "2024-09-15",
+      "calibrationDate": "2024-10-05"
+    },
+    "status": "needs_attention",
+    "lastSeen": "2025-01-07T17:30:30Z",
+    "batteryInfo": {
+      "currentLevel": 23,
+      "estimatedHoursRemaining": 48,
+      "chargeCycles": 156,
+      "batteryHealth": "poor"
+    },
+    "sensorCalibration": {
+      "redOffset": -0.45,
+      "infraredOffset": -0.32,
+      "greenOffset": -0.28,
+      "temperatureOffset": 0.8
+    },
+    "userSpecificSettings": {
+      "skinToneCompensation": "light",
+      "motionSensitivity": "normal",
+      "samplingRate": "standard"
+    },
+    "createdAt": "2024-10-05T00:00:00Z",
+    "updatedAt": "2025-01-07T17:30:30Z"
+  }
+]
