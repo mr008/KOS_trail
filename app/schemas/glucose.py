@@ -27,9 +27,9 @@ class GlucoseReadingCreate(BaseModel):
     signalQuality: SignalQuality = Field(..., description="Signal quality level")
 
     @validator('timestamp')
-    def validate_timestamp_not_future(cls, v):
-        """Ensure timestamp is not in the future - handle both naive and aware datetimes"""
-        from datetime import timezone
+    def validate_timestamp_not_future_or_too_old(cls, v):
+        """Ensure timestamp is not in the future and not too old - handle both naive and aware datetimes"""
+        from datetime import timezone, timedelta
         
         # Convert both timestamps to UTC naive for comparison
         if v.tzinfo is not None:
@@ -42,9 +42,13 @@ class GlucoseReadingCreate(BaseModel):
         current_time = datetime.utcnow()
         
         # Check if timestamp is in the future (allowing small buffer for clock skew)
-        from datetime import timedelta
         if v_naive > (current_time + timedelta(minutes=5)):
             raise ValueError(f'timestamp {v_naive} cannot be in the future (current UTC: {current_time})')
+        
+        # Check if timestamp is too old (older than 72 hours)
+        oldest_allowed = current_time - timedelta(hours=72)
+        if v_naive < oldest_allowed:
+            raise ValueError(f'timestamp {v_naive} is too old. Readings older than 72 hours are not accepted (oldest allowed: {oldest_allowed})')
         
         return v_naive  # Return naive datetime for database compatibility
     
@@ -79,4 +83,12 @@ class CurrentGlucoseReading(BaseModel):
     sensorData: dict
     batteryLevel: int
     signalQuality: str
-    createdAt: Optional[datetime] = None 
+    createdAt: Optional[datetime] = None
+
+class AnalyticsSummary(BaseModel):
+    """Analytics summary response model"""
+    period: str
+    averageGlucose: float
+    timeInRange: dict
+    totalReadings: int
+    alertsTriggered: int 

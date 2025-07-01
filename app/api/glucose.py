@@ -1,15 +1,73 @@
 from fastapi import APIRouter, HTTPException, Path, Query, Depends
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 from typing import List
 import json
+import logging
 
-from app.schemas.glucose import GlucoseReadingCreate, GlucoseReadingResponse, CurrentGlucoseReading
+from app.schemas.glucose import GlucoseReadingCreate, GlucoseReadingResponse, CurrentGlucoseReading, AnalyticsSummary
 from app.core.database import database
 from app.core.redis_client import redis_client
 from app.core.auth import verify_api_key, verify_jwt
 
 router = APIRouter()
+
+# Medical alert thresholds (can be moved to config later)
+MEDICAL_THRESHOLDS = {
+    "user_5678": {"low": 80, "high": 180, "rapid_change": 4.0},
+    "user_9012": {"low": 65, "high": 200, "rapid_change": 5.0},
+    "default": {"low": 70, "high": 180, "rapid_change": 4.0}
+}
+
+async def check_medical_alerts(reading: GlucoseReadingCreate, reading_id: str):
+    """Check for medical alerts and log them"""
+    user_thresholds = MEDICAL_THRESHOLDS.get(reading.userId, MEDICAL_THRESHOLDS["default"])
+    
+    # Low glucose alert (Hypoglycemia)
+    if reading.glucoseValue < user_thresholds["low"]:
+        alert_msg = f"LOW GLUCOSE ALERT for user_{reading.userId}: {reading.glucoseValue} mg/dL (threshold: {user_thresholds['low']})"
+        print(f"🚨 {alert_msg}")
+        logging.warning(alert_msg)
+    
+    # High glucose alert (Hyperglycemia)
+    elif reading.glucoseValue > user_thresholds["high"]:
+        alert_msg = f"HIGH GLUCOSE ALERT for user_{reading.userId}: {reading.glucoseValue} mg/dL (threshold: {user_thresholds['high']})"
+        print(f"🚨 {alert_msg}")
+        logging.warning(alert_msg)
+    
+    # Check for rapid change
+    try:
+        async with database.pool.acquire() as connection:
+            # Get the most recent reading before this one
+            previous_reading = await connection.fetchrow(
+                """
+                SELECT glucose_value, timestamp 
+                FROM glucose_readings 
+                WHERE user_id = $1 AND timestamp < $2 
+                ORDER BY timestamp DESC 
+                LIMIT 1
+                """,
+                reading.userId, reading.timestamp
+            )
+            
+            if previous_reading:
+                time_diff = (reading.timestamp - previous_reading['timestamp']).total_seconds() / 60  # minutes
+                if time_diff > 0:  # Avoid division by zero
+                    glucose_diff = abs(reading.glucoseValue - previous_reading['glucose_value'])
+                    change_rate = glucose_diff / time_diff  # mg/dL per minute
+                    
+                    if change_rate >= user_thresholds["rapid_change"]:
+                        alert_msg = f"RAPID GLUCOSE CHANGE ALERT for user_{reading.userId}: {change_rate:.1f} mg/dL/min (threshold: {user_thresholds['rapid_change']})"
+                        print(f"🚨 {alert_msg}")
+                        logging.warning(alert_msg)
+    except Exception as e:
+        print(f"⚠️ Error checking rapid change alerts: {e}")
+
+    # Low quality reading audit log
+    if reading.confidence < 0.75 and reading.signalQuality in ["poor", "fair"]:
+        audit_msg = f"Low quality reading received for user_{reading.userId}: confidence={reading.confidence}, signal={reading.signalQuality.value}"
+        print(f"📝 {audit_msg}")
+        logging.info(audit_msg)
 
 @router.post("/devices/{device_id}/readings", response_model=GlucoseReadingResponse, status_code=201)
 async def create_glucose_reading(
@@ -104,6 +162,9 @@ async def create_glucose_reading(
                 reading.signalQuality.value  # Use .value for Enum
             )
             reading_id = str(result)
+        
+        # Check for medical alerts AFTER successful insertion
+        await check_medical_alerts(reading, reading_id)
         
         return GlucoseReadingResponse(
             status="processed",
@@ -235,4 +296,116 @@ async def get_current_glucose(
         raise
     except Exception as e:
         print(f"Error getting current glucose: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get current glucose: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Failed to get current glucose: {str(e)}")
+
+@router.get("/users/{user_id}/glucose/history", response_model=List[CurrentGlucoseReading])
+async def get_glucose_history(
+    user_id: str = Path(..., description="User ID"),
+    period: str = Query(default="7d", description="Time period (7d, 30d, 90d)"),
+    token: str = Depends(verify_jwt)
+):
+    """
+    Get glucose reading history for a user within a specified period
+    """
+    try:
+        # Parse period parameter
+        period_days = {"7d": 7, "30d": 30, "90d": 90}.get(period, 7)
+        cutoff_time = datetime.utcnow() - timedelta(days=period_days)
+        
+        query = """
+            SELECT id, user_id, device_id, timestamp, glucose_value, 
+                   confidence, sensor_data, battery_level, signal_quality, created_at
+            FROM glucose_readings 
+            WHERE user_id = $1 AND timestamp >= $2
+            ORDER BY timestamp DESC
+        """
+        
+        async with database.pool.acquire() as connection:
+            rows = await connection.fetch(query, user_id, cutoff_time)
+            
+            # Convert the rows to our response model
+            readings = []
+            for row in rows:
+                sensor_data = json.loads(row['sensor_data']) if row['sensor_data'] else {}
+                
+                reading = CurrentGlucoseReading(
+                    id=str(row['id']),
+                    userId=row['user_id'],
+                    deviceId=row['device_id'],
+                    timestamp=row['timestamp'],
+                    glucoseValue=row['glucose_value'],
+                    confidence=float(row['confidence']),
+                    sensorData=sensor_data,
+                    batteryLevel=row['battery_level'],
+                    signalQuality=row['signal_quality'],
+                    createdAt=row['created_at']
+                )
+                readings.append(reading)
+            
+            return readings
+            
+    except Exception as e:
+        print(f"Error getting glucose history: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get glucose history: {str(e)}")
+
+@router.get("/users/{user_id}/analytics/summary", response_model=AnalyticsSummary)
+async def get_analytics_summary(
+    user_id: str = Path(..., description="User ID"),
+    period: str = Query(default="30d", description="Time period (7d, 30d, 90d)"),
+    token: str = Depends(verify_jwt)
+):
+    """
+    Get analytics summary for a user
+    """
+    try:
+        # Parse period parameter
+        period_days = {"7d": 7, "30d": 30, "90d": 90}.get(period, 30)
+        cutoff_time = datetime.utcnow() - timedelta(days=period_days)
+        
+        query = """
+            SELECT glucose_value, COUNT(*) as reading_count, AVG(glucose_value) as avg_glucose
+            FROM glucose_readings 
+            WHERE user_id = $1 AND timestamp >= $2
+            GROUP BY glucose_value
+            ORDER BY glucose_value
+        """
+        
+        async with database.pool.acquire() as connection:
+            rows = await connection.fetch(query, user_id, cutoff_time)
+            
+            if not rows:
+                # Return empty analytics if no data
+                return AnalyticsSummary(
+                    period=period,
+                    averageGlucose=0.0,
+                    timeInRange={"low": 0, "normal": 0, "high": 0},
+                    totalReadings=0,
+                    alertsTriggered=0
+                )
+            
+            # Calculate analytics
+            total_readings = sum(row['reading_count'] for row in rows)
+            avg_glucose = sum(row['glucose_value'] * row['reading_count'] for row in rows) / total_readings if total_readings > 0 else 0
+            
+            # Calculate time in range (70-180 mg/dL is normal)
+            low_count = sum(row['reading_count'] for row in rows if row['glucose_value'] < 70)
+            normal_count = sum(row['reading_count'] for row in rows if 70 <= row['glucose_value'] <= 180)
+            high_count = sum(row['reading_count'] for row in rows if row['glucose_value'] > 180)
+            
+            time_in_range = {
+                "low": round(low_count / total_readings * 100, 1) if total_readings > 0 else 0,
+                "normal": round(normal_count / total_readings * 100, 1) if total_readings > 0 else 0,
+                "high": round(high_count / total_readings * 100, 1) if total_readings > 0 else 0
+            }
+            
+            return AnalyticsSummary(
+                period=period,
+                averageGlucose=round(avg_glucose, 1),
+                timeInRange=time_in_range,
+                totalReadings=total_readings,
+                alertsTriggered=low_count + high_count  # Simplified alert count
+            )
+            
+    except Exception as e:
+        print(f"Error getting analytics summary: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get analytics summary: {str(e)}") 
