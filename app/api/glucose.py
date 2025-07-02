@@ -118,7 +118,7 @@ async def create_glucose_reading(
                     status_code=429,
                     detail=f"Rate limit exceeded. Device {device_id} can only submit one reading every 30 seconds."
                 )
-            
+        
             # Set rate limit for 30 seconds
             await redis_client.client.setex(rate_limit_key, 30, "1")
         else:
@@ -288,7 +288,7 @@ async def get_current_glucose(
         raise
     except Exception as e:
         print(f"Error getting current glucose: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get current glucose: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get current glucose: {str(e)}") 
 
 @router.get("/users/{user_id}/glucose/history", response_model=List[CurrentGlucoseReading])
 async def get_glucose_history(

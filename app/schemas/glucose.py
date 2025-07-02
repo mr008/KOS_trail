@@ -83,7 +83,7 @@ class CurrentGlucoseReading(BaseModel):
     sensorData: dict
     batteryLevel: int
     signalQuality: str
-    createdAt: Optional[datetime] = None
+    createdAt: Optional[datetime] = None 
 
 class AnalyticsSummary(BaseModel):
     """Analytics summary response model"""
