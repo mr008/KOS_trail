@@ -357,7 +357,8 @@ uvicorn app.main:app --reload
 
 ## Terminal 2: Send Test Requests
 
-### 1. Valid Reading (should succeed)
+### Bash/zsh Example
+#### 1. Valid Reading (should succeed)
 ```sh
 curl -X POST \
   -H "Content-Type: application/json" \
@@ -375,7 +376,7 @@ curl -X POST \
   http://127.0.0.1:8000/api/v1/devices/ARGUS_001234/readings
 ```
 
-### 2. Rate Limiting (second request, should fail with 429)
+#### 2. Rate Limiting (second request, should fail with 429)
 ```sh
 curl -X POST \
   -H "Content-Type: application/json" \
@@ -391,6 +392,45 @@ curl -X POST \
     "signalQuality": "good"
   }' \
   http://127.0.0.1:8000/api/v1/devices/ARGUS_001234/readings
+```
+
+### PowerShell Example
+#### 1. Valid Reading (should succeed)
+```powershell
+$body = '{
+  "deviceId": "ARGUS_001234",
+  "userId": "user_5678",
+  "timestamp": "2024-01-01T12:00:00Z",
+  "glucoseValue": 120,
+  "confidence": 0.95,
+  "sensorData": { "red": 1234.5, "infrared": 2345.6, "green": 3456.7, "temperature": 36.5, "motionArtifact": false },
+  "batteryLevel": 85,
+  "signalQuality": "good"
+}'
+
+curl -Method POST `
+  -Uri "http://127.0.0.1:8000/api/v1/devices/ARGUS_001234/readings" `
+  -Headers @{ "Content-Type" = "application/json"; "X-API-Key" = "dev-api-key-12345" } `
+  -Body $body
+```
+
+#### 2. Rate Limiting (second request, should fail with 429)
+```powershell
+$body = '{
+  "deviceId": "ARGUS_001234",
+  "userId": "user_5678",
+  "timestamp": "2024-01-01T12:00:10Z",
+  "glucoseValue": 120,
+  "confidence": 0.95,
+  "sensorData": { "red": 1234.5, "infrared": 2345.6, "green": 3456.7, "temperature": 36.5, "motionArtifact": false },
+  "batteryLevel": 85,
+  "signalQuality": "good"
+}'
+
+curl -Method POST `
+  -Uri "http://127.0.0.1:8000/api/v1/devices/ARGUS_001234/readings" `
+  -Headers @{ "Content-Type" = "application/json"; "X-API-Key" = "dev-api-key-12345" } `
+  -Body $body
 ```
 
 ---
