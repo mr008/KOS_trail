@@ -25,14 +25,12 @@ async def check_medical_alerts(reading: GlucoseReadingCreate, reading_id: str):
     
     # Low glucose alert (Hypoglycemia)
     if reading.glucoseValue < user_thresholds["low"]:
-        alert_msg = f"LOW GLUCOSE ALERT for user_{reading.userId}: {reading.glucoseValue} mg/dL (threshold: {user_thresholds['low']})"
-        print(f"🚨 {alert_msg}")
+        alert_msg = f"🚨 LOW GLUCOSE ALERT for {reading.userId}: {reading.glucoseValue} mg/dL (threshold: {user_thresholds['low']})"
         logging.warning(alert_msg)
     
     # High glucose alert (Hyperglycemia)
     elif reading.glucoseValue > user_thresholds["high"]:
-        alert_msg = f"HIGH GLUCOSE ALERT for user_{reading.userId}: {reading.glucoseValue} mg/dL (threshold: {user_thresholds['high']})"
-        print(f"🚨 {alert_msg}")
+        alert_msg = f"🚨 HIGH GLUCOSE ALERT for {reading.userId}: {reading.glucoseValue} mg/dL (threshold: {user_thresholds['high']})"
         logging.warning(alert_msg)
     
     # Check for rapid change
@@ -52,21 +50,18 @@ async def check_medical_alerts(reading: GlucoseReadingCreate, reading_id: str):
             
             if previous_reading:
                 time_diff = (reading.timestamp - previous_reading['timestamp']).total_seconds() / 60  # minutes
-                if time_diff > 0:  # Avoid division by zero
-                    glucose_diff = abs(reading.glucoseValue - previous_reading['glucose_value'])
-                    change_rate = glucose_diff / time_diff  # mg/dL per minute
-                    
-                    if change_rate >= user_thresholds["rapid_change"]:
-                        alert_msg = f"RAPID GLUCOSE CHANGE ALERT for user_{reading.userId}: {change_rate:.1f} mg/dL/min (threshold: {user_thresholds['rapid_change']})"
-                        print(f"🚨 {alert_msg}")
-                        logging.warning(alert_msg)
+                glucose_diff = abs(reading.glucoseValue - previous_reading['glucose_value'])
+                change_rate = glucose_diff / time_diff if time_diff > 0 else 0  # mg/dL per minute
+                
+                if time_diff > 0 and change_rate >= user_thresholds["rapid_change"]:
+                    alert_msg = f"🚨 RAPID GLUCOSE CHANGE ALERT for {reading.userId}: change of {glucose_diff} mg/dL over {time_diff:.1f} minutes ({change_rate:.1f} mg/dL/min > {user_thresholds['rapid_change']} threshold)"
+                    logging.warning(alert_msg)
     except Exception as e:
         print(f"⚠️ Error checking rapid change alerts: {e}")
 
     # Low quality reading audit log
-    if reading.confidence < 0.75 and reading.signalQuality in ["poor", "fair"]:
-        audit_msg = f"Low quality reading received for user_{reading.userId}: confidence={reading.confidence}, signal={reading.signalQuality.value}"
-        print(f"📝 {audit_msg}")
+    if reading.confidence < 0.75 or reading.signalQuality in ["poor", "fair"]:
+        audit_msg = f"📝 Low quality reading received for {reading.userId}: confidence={reading.confidence}, signal={reading.signalQuality}"
         logging.info(audit_msg)
 
 @router.post("/devices/{device_id}/readings", response_model=GlucoseReadingResponse, status_code=201)
@@ -163,7 +158,7 @@ async def create_glucose_reading(
             )
             reading_id = str(result)
         
-        # Check for medical alerts AFTER successful insertion
+        # Medical alerting - Real-time alerts for critical glucose values
         await check_medical_alerts(reading, reading_id)
         
         return GlucoseReadingResponse(
@@ -177,9 +172,6 @@ async def create_glucose_reading(
         raise
     except Exception as e:
         print(f"Error saving glucose reading: {e}")
-        print(f"Error type: {type(e)}")
-        import traceback
-        traceback.print_exc()
         
         # Handle specific database errors
         error_message = str(e)
