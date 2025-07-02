@@ -33,65 +33,71 @@ A **production-ready, enterprise-grade** FastAPI backend service for continuous 
 | **Validation** | Pydantic v2 | Medical-grade data validation |
 | **Authentication** | Custom API Key + JWT | Device and user security |
 
-## 🐳 **Quick Start (Docker - Recommended)**
+## 🪟 **Windows Quick Start Guide**
 
-### Prerequisites
-- **Docker & Docker Compose** (latest version)
-- **Git**
+**This project is fully compatible with Windows!**
 
-### 1. Clone & Start
-```bash
-# Clone the repository
+### 1. Prerequisites
+- **Docker Desktop for Windows** ([Download](https://www.docker.com/products/docker-desktop))
+- **Git for Windows** ([Download](https://git-scm.com/download/win))
+- **PowerShell** (comes with Windows 10/11)
+- **Python 3.9+** (for running test suite)
+
+### 2. Clone and Start Services
+```powershell
+# Open PowerShell
+cd <your desired directory>
 git clone https://github.com/mr008/KOS_trail.git
 cd KOS_trail
 
-# Start all services (PostgreSQL + Redis + API)
+# Start all services (API, PostgreSQL, Redis)
 docker-compose up -d
 
-# Verify all services are healthy
+# Check service status
 docker-compose ps
 ```
 
-### 2. Test the API
-```bash
+### 3. Test the API (PowerShell)
+```powershell
 # Health check
-curl http://localhost:8000/health
+Invoke-RestMethod -Uri "http://localhost:8000/health" -Method GET
 
 # Submit a glucose reading
-curl -X POST \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: dev-api-key-12345" \
-  -d '{
-    "deviceId": "ARGUS_001234",
-    "userId": "user_5678",
-    "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
-    "glucoseValue": 75,
-    "confidence": 0.94,
-    "sensorData": {
-      "red": 2.45,
-      "infrared": 1.89,
-      "green": 3.12,
-      "temperature": 36.2,
-      "motionArtifact": false
-    },
-    "batteryLevel": 78,
-    "signalQuality": "good"
-  }' \
-  http://localhost:8000/api/v1/devices/ARGUS_001234/readings
+$body = @{
+  deviceId = "ARGUS_001234"
+  userId = "user_5678"
+  timestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.000Z")
+  glucoseValue = 120
+  confidence = 0.94
+  sensorData = @{ red = 2.45; infrared = 1.89; green = 3.12; temperature = 36.2; motionArtifact = $false }
+  batteryLevel = 78
+  signalQuality = "good"
+} | ConvertTo-Json -Depth 3
 
-# Check logs for medical alerts
-docker logs kos_app --tail 10
+$headers = @{ "X-API-Key" = "dev-api-key-12345"; "Content-Type" = "application/json" }
+Invoke-RestMethod -Uri "http://localhost:8000/api/v1/devices/ARGUS_001234/readings" -Method POST -Body $body -Headers $headers
 ```
 
-**Expected Medical Alert:**
-```
-WARNING:root:🚨 LOW GLUCOSE ALERT for user_5678: 75 mg/dL (threshold: 80)
+### 4. Run Medical Alert Test (PowerShell)
+```powershell
+# Use the provided Windows script
+dotnet ./test_rapid_change.ps1
+# or
+./test_rapid_change.ps1
 ```
 
-### 3. Access Services
-- **API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs  
-- **pgAdmin** (optional): http://localhost:8081
+### 5. Run Python Test Suite
+```powershell
+python test_corrected.py
+```
+
+### 6. Check API Logs
+```powershell
+docker logs kos_app --tail 20
+```
+
+### 7. Postman Collection
+- Import `backend_work_trial_data/api_tests.postman_collection.json` into Postman for full API testing.
 
 ## 🚨 **Medical Alerting System**
 
@@ -261,7 +267,7 @@ KOS/
 ├── 🐳 Dockerfile              # API container definition
 ├── 📁 app/                     # FastAPI application
 │   ├── 🌐 api/glucose.py       # Glucose monitoring endpoints
-│   ├── 🔐 core/auth.py         # Multi-layer authentication
+│   ├── 🔐 core/auth.py         # Multi-layer authenticatiocn
 │   ├── 🗄️ core/database.py     # PostgreSQL async connection
 │   ├── ⚡ core/redis_client.py  # Redis rate limiting
 │   └── 📝 schemas/glucose.py   # Pydantic medical data models
