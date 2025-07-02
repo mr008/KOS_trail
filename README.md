@@ -143,23 +143,23 @@ Import `backend_work_trial_data/api_tests.postman_collection.json` into Postman 
 #### Valid Reading (Should Trigger Low Glucose Alert)
 ```bash
 curl -X POST \
-  -H "Content-Type: application/json" \
+     -H "Content-Type: application/json" \
   -H "X-API-Key: dev-api-key-12345" \
   -d '{
-    "deviceId": "ARGUS_001234",
-    "userId": "user_5678", 
+  "deviceId": "ARGUS_001234",
+  "userId": "user_5678", 
     "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
     "glucoseValue": 60,
-    "confidence": 0.95,
-    "sensorData": {
+  "confidence": 0.95,
+  "sensorData": {
       "red": 1234.5,
       "infrared": 2345.6,
       "green": 3456.7,
       "temperature": 36.5,
-      "motionArtifact": false
-    },
+    "motionArtifact": false
+  },
     "batteryLevel": 85,
-    "signalQuality": "good"
+  "signalQuality": "good"
   }' \
   http://localhost:8000/api/v1/devices/ARGUS_001234/readings
 ```
@@ -342,4 +342,59 @@ This API implements medical-grade features suitable for continuous glucose monit
 
 ---
 
-**🎯 Production-Ready Status**: This glucose monitoring API achieves **88% specification compliance** with comprehensive medical alerting, enterprise security, and Docker containerization ready for immediate deployment. 
+**🎯 Production-Ready Status**: This glucose monitoring API achieves **88% specification compliance** with comprehensive medical alerting, enterprise security, and Docker containerization ready for immediate deployment.
+
+# Quick Test: Two-Terminal API Demo
+
+**Test the backend instantly using two terminals.**
+
+---
+
+## Terminal 1: Start the Server
+```sh
+uvicorn app.main:app --reload
+```
+
+## Terminal 2: Send Test Requests
+
+### 1. Valid Reading (should succeed)
+```sh
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: dev-api-key-12345" \
+  -d '{
+    "deviceId": "ARGUS_001234",
+    "userId": "user_5678",
+    "timestamp": "2024-01-01T12:00:00Z",
+    "glucoseValue": 120,
+    "confidence": 0.95,
+    "sensorData": {"red": 1234.5, "infrared": 2345.6, "green": 3456.7, "temperature": 36.5, "motionArtifact": false},
+    "batteryLevel": 85,
+    "signalQuality": "good"
+  }' \
+  http://127.0.0.1:8000/api/v1/devices/ARGUS_001234/readings
+```
+
+### 2. Rate Limiting (second request, should fail with 429)
+```sh
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: dev-api-key-12345" \
+  -d '{
+    "deviceId": "ARGUS_001234",
+    "userId": "user_5678",
+    "timestamp": "2024-01-01T12:00:10Z",
+    "glucoseValue": 120,
+    "confidence": 0.95,
+    "sensorData": {"red": 1234.5, "infrared": 2345.6, "green": 3456.7, "temperature": 36.5, "motionArtifact": false},
+    "batteryLevel": 85,
+    "signalQuality": "good"
+  }' \
+  http://127.0.0.1:8000/api/v1/devices/ARGUS_001234/readings
+```
+
+---
+
+**Watch Terminal 1 for logs and status codes.**
+
+--- 
