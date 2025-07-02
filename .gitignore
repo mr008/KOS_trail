@@ -234,7 +234,8 @@ $RECYCLE.BIN/
 
 # Docker
 .dockerignore
-Dockerfile
+# Dockerfile and docker-compose.yml are intentionally NOT ignored
+# docker-compose.override.yml is ignored (local overrides only)
 docker-compose.override.yml
 
 # npm-debug.log*
